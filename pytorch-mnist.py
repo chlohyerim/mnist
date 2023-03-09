@@ -30,7 +30,7 @@ _batch_size = 64
 learning_rate = 0.001
 n_epoch = 10
 
-# mini batch 구성
+# batch size = 64인 mini batch 구성
 # test data는 섞지 않는다.
 train_dataloader = DataLoader(dataset=train_data,
                               batch_size=_batch_size,
