@@ -19,7 +19,7 @@ import seaborn as sns
 train_data = datasets.MNIST(root='./data',
                             train=True,
                             download=True,
-                            transform=ToTensor())  # target의 1-hot encoding
+                            transform=ToTensor())
 test_data = datasets.MNIST(root='./data',
                            train=False,
                            download=True,
@@ -115,9 +115,9 @@ else:
             loss.backward()  # backward propagation
             optimizer.step()
 
-            # loss_min의 값이 없거나 현재 iteration의 loss 값이 loss_min보다 작으면 loss_min 값 및 저장할 모델을 업데이트
             is_updating = False
 
+            # loss_min의 값이 없거나 현재 iteration의 loss 값이 loss_min보다 작으면 loss_min 값 및 저장할 모델을 업데이트
             if loss_min == None or loss_min > loss.item():
                 is_updating = True
                 loss_min = loss.item()
@@ -142,9 +142,9 @@ for data, target in test_dataloader:
     target = target.to(device)
 
     output = model(data)  # test data를 모델에 feed
-    proba = (nn.functional.softmax(output)).data.cpu().numpy()
+    proba = (nn.functional.softmax(output, dim=1)).data.cpu().numpy()
 
-    probas.extend(proba)  # ?
+    probas.extend(proba)
 
     pred = (torch.max(torch.exp(output), dim=1)[1]).data.cpu().numpy()  # arg-max
 
@@ -157,26 +157,8 @@ for data, target in test_dataloader:
 cf_matrix = confusion_matrix(targets, preds)  # sklearn.metrics의 confusion matrix 라이브러리 기준 targets가 세로, preds가 가로
 df_cf_matrix = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1))
 
-df_cf_matrix.index = ['True 0',
-                      'True 1',
-                      'True 2',
-                      'True 3',
-                      'True 4',
-                      'True 5',
-                      'True 6',
-                      'True 7',
-                      'True 8',
-                      'True 9']
-df_cf_matrix.columns = ['Predicted 0',
-                        'Predicted 1',
-                        'Predicted 2',
-                        'Predicted 3',
-                        'Predicted 4',
-                        'Predicted 5',
-                        'Predicted 6',
-                        'Predicted 7',
-                        'Predicted 8',
-                        'Predicted 9']
+df_cf_matrix.index = ['True ' + str(i) for i in range(10)]
+df_cf_matrix.columns = ['Predicted ' + str(i) for i in range(10)]
 
 accuracy = accuracy_score(targets, preds)
 
@@ -189,16 +171,16 @@ fig1 = plt.title('Confusion Matrix')
 infer_index = 42
 infer_image, infer_label = test_data[infer_index]
 
-fig2 = plt.figure(figsize=(12, 9))
+fig2 = plt.figure(figsize=(12, 6))
 fig2 = plt.subplot(1, 3, 1)
 fig2 = plt.axis('off')
 fig2 = plt.imshow(infer_image.squeeze().numpy(), cmap='gray')
 fig2 = plt.subplot(1, 3, 2)
-fig2 = plt.table([[preds[infer_index]], [infer_label]], rowLabels=['Predicted', 'True'])
+fig2 = plt.table([['Predicted', preds[infer_index]], ['True', infer_label]], loc='center')
 fig2 = plt.axis('off')
+fig2 = plt.title('Inference Test Data ' + str(infer_index))
 fig2 = plt.subplot(1, 3, 3)
+fig2 = plt.table(np.swapaxes([['Proba ' + str(i) for i in range(10)], probas[infer_index]], 0, 1), loc='center')
 fig2 = plt.axis('off')
-
-print(probas[infer_index])
 
 plt.show()
